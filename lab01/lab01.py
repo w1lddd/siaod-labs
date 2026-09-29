@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """ЛР №1. Четыре алгоритма, проверки, замеры и графики в одном файле.
 
-Запуск из папки practice после активации .venv:
+Запуск из корня репозитория после активации .venv:
     python scripts/generate_data.py --variant 7 --only arrays
-    python lab01.py --variant 7
+    python lab01/lab01.py --variant 7 --out lab01/results-new
 
 Основа: официальная заготовка mel0d1an, получена 29.09.2026.
 https://github.com/mel0d1an/data-structures-and-algorithms/blob/main/M1-intro-and-basic-structures/attachments/lab01-complexity-starter.py
@@ -12,18 +12,19 @@ https://github.com/mel0d1an/data-structures-and-algorithms/blob/main/M1-intro-an
 дополнительные проверки, сохранение повторов и окружения, папка результатов.
 Результаты замеров относятся к этому коду, включая рекурсивную степень.
 """
+
 from __future__ import annotations
 
 import argparse
-import json
 import hashlib
-import platform
-import sys
-from datetime import datetime
+import json
 import math
+import platform
 import random
 import statistics
+import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -48,8 +49,8 @@ POW_BASE = 3
 
 MEASURED_REPEATS = []  # Исходные длительности пяти повторов каждой точки.
 
-REPEATS = 5           # повторов на точку (берётся медиана)
-POW_CALLS = 20_000    # вызовов binary_pow на один замер: иначе время неизмеримо мало
+REPEATS = 5  # повторов на точку (берётся медиана)
+POW_CALLS = 20_000  # вызовов binary_pow на один замер: иначе время неизмеримо мало
 
 # ---------------------------------------------------------------------------
 # 1. Алгоритмы (реализуются вручную, без sum/max и встроенного pow)
@@ -90,7 +91,11 @@ def count_equal_pairs(a):
 
 
 def binary_pow(x, n, mod=None):
-    """Степень: Θ(log n) шагов при n > 0, Θ(1) при n = 0. Каждый вызов возвращает x**n или его остаток. Рекурсия использует Θ(log n) уровней стека в учебной модели."""
+    """Степень: Θ(log n) шагов при n > 0, Θ(1) при n = 0.
+
+    Каждый вызов возвращает x**n или его остаток. Рекурсия использует
+    Θ(log n) уровней стека в учебной модели.
+    """
     if n < 0:
         raise ValueError("Показатель степени не может быть отрицательным")
 
@@ -141,15 +146,18 @@ def find_data_dir(explicit: Path | None) -> Path:
         "Не найден каталог data/generated с данными варианта.\n"
         "Сгенерируйте данные из корня репозитория курса:\n"
         "    python scripts/generate_data.py --variant N --only arrays\n"
-        "или укажите каталог явно: --data <путь>")
+        "или укажите каталог явно: --data <путь>"
+    )
 
 
 def check_variant(data_dir: Path, variant: int) -> None:
     """Сверить номер варианта с паспортом данных (manifest.json)."""
     manifest_path = data_dir / "manifest.json"
     if not manifest_path.is_file():
-        print(f"ВНИМАНИЕ: в {data_dir} нет manifest.json — "
-              f"не могу проверить, что данные относятся к варианту {variant}.")
+        print(
+            f"ВНИМАНИЕ: в {data_dir} нет manifest.json — "
+            f"не могу проверить, что данные относятся к варианту {variant}."
+        )
         return
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("seed") != 30 + variant:
@@ -160,18 +168,22 @@ def check_variant(data_dir: Path, variant: int) -> None:
             f"Данные в {data_dir} сгенерированы для варианта {actual}, "
             f"а работа запущена с --variant {variant}.\n"
             f"Перегенерируйте данные: "
-            f"python scripts/generate_data.py --variant {variant} --only arrays")
+            f"python scripts/generate_data.py --variant {variant} --only arrays"
+        )
     print(f"Данные варианта {variant} (seed={manifest.get('seed')}) из {data_dir}")
 
 
-def load_array(data_dir: Path, kind: str, n: int, limit: int | None = None) -> list[int]:
+def load_array(
+    data_dir: Path, kind: str, n: int, limit: int | None = None
+) -> list[int]:
     """Загрузить массив arrays_<kind>_<n>.txt; limit — взять только первые limit чисел."""
     path = data_dir / f"arrays_{kind}_{n}.txt"
     if not path.is_file():
         raise SystemExit(
             f"Не найден файл данных: {path}\n"
             f"Сгенерируйте его: python scripts/generate_data.py "
-            f"--variant <ваш вариант> --only arrays")
+            f"--variant <ваш вариант> --only arrays"
+        )
     values = [int(line) for line in path.read_text(encoding="utf-8").split()]
     return values[:limit] if limit is not None else values
 
@@ -188,7 +200,7 @@ def self_check() -> None:
     assert array_sum([7]) == 7
     assert array_max([3, 1, 2]) == 3
     assert count_equal_pairs([]) == 0
-    assert count_equal_pairs([5, 5, 5]) == 3          # пары (0,1), (0,2), (1,2)
+    assert count_equal_pairs([5, 5, 5]) == 3  # пары (0,1), (0,2), (1,2)
     assert binary_pow(2, 0) == 1
     assert binary_pow(2, 10) == 1024
     assert binary_pow(2, 10, mod=1000) == 24
@@ -227,7 +239,9 @@ def self_check() -> None:
         if prefix:
             assert array_max(prefix) == max(prefix)
         for x in (-1, 2, 5):
-            assert count_equal_pairs(prefix + [x]) == count_equal_pairs(prefix) + prefix.count(x)
+            assert count_equal_pairs(prefix + [x]) == count_equal_pairs(
+                prefix
+            ) + prefix.count(x)
 
     # Независимая сверка подсчёта пар по частотам и степени со встроенным pow.
     for _ in range(200):
@@ -239,8 +253,12 @@ def self_check() -> None:
         assert binary_pow(x, n, mod) == pow(x, n, mod)
 
     # Ошибочные входы должны давать понятную ошибку ValueError.
-    for fn, args in ((array_max, ([],)), (binary_pow, (2, -1)),
-                     (binary_pow, (2, 3, 0)), (binary_pow, (2, 3, -7))):
+    for fn, args in (
+        (array_max, ([],)),
+        (binary_pow, (2, -1)),
+        (binary_pow, (2, 3, 0)),
+        (binary_pow, (2, 3, -7)),
+    ):
         try:
             fn(*args)
         except ValueError:
@@ -272,8 +290,9 @@ def log_log_slope(points: list[tuple[int, float]]) -> float:
     xs = [math.log10(n) for n, _ in points]
     ys = [math.log10(t) for _, t in points]
     mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
-    return (sum((x - mx) * (y - my) for x, y in zip(xs, ys))
-            / sum((x - mx) ** 2 for x in xs))
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sum(
+        (x - mx) ** 2 for x in xs
+    )
 
 
 def run_benchmarks(data_dir: Path) -> dict[str, list[tuple[int, float]]]:
@@ -308,9 +327,11 @@ def run_benchmarks(data_dir: Path) -> dict[str, list[tuple[int, float]]]:
     print(f"\nbinary_pow (по {POW_CALLS} вызовов на точку, по модулю {POW_MOD}):")
     points = []
     for e in EXPONENTS:
+
         def batch(e: int = e) -> None:
             for _ in range(POW_CALLS):
                 binary_pow(POW_BASE, e, mod=POW_MOD)
+
         t = bench(batch) / POW_CALLS
         points.append((e, t))
         print(f"  n={e:>9}  log2(n)={math.log2(e):5.1f}  t={t:.9f} c")
@@ -328,11 +349,14 @@ def plot_results(results: dict[str, list[tuple[int, float]]], out_dir: Path) -> 
     """Два графика: log-log для степенных алгоритмов и t(log n) для бинарной степени."""
     try:
         import matplotlib
+
         matplotlib.use("Agg")  # сохранение в файл без графической оболочки
         import matplotlib.pyplot as plt
     except ImportError:
-        print("\nmatplotlib не установлен — графики пропущены "
-              "(pip install -r requirements.txt)")
+        print(
+            "\nmatplotlib не установлен — графики пропущены "
+            "(pip install -r requirements.txt)"
+        )
         return
 
     power_law = ("array_sum", "array_max", "count_equal_pairs")
@@ -341,7 +365,9 @@ def plot_results(results: dict[str, list[tuple[int, float]]], out_dir: Path) -> 
         points = results[name]
         ns = [n for n, _ in points]
         ts = [t for _, t in points]
-        ax.plot(ns, ts, marker="o", label=f"{name} (наклон ≈ {log_log_slope(points):.2f})")
+        ax.plot(
+            ns, ts, marker="o", label=f"{name} (наклон ≈ {log_log_slope(points):.2f})"
+        )
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("размер входа n")
@@ -373,11 +399,11 @@ def plot_results(results: dict[str, list[tuple[int, float]]], out_dir: Path) -> 
 # ---------------------------------------------------------------------------
 
 
-
 def save_results(results, data_dir, variant, out_dir):
     """Сохраняем исходные повторы, медианы и окружение для отчёта."""
     import matplotlib
     import numpy
+
     iterator = iter(MEASURED_REPEATS)
     points = {}
     for name, values in results.items():
@@ -385,38 +411,64 @@ def save_results(results, data_dir, variant, out_dir):
         points[name] = []
         for n, median in values:
             repeats = next(iterator)
-            points[name].append({
-                "n": n, "median_seconds": median,
-                "calls_per_repeat": calls,
-                "repeat_total_seconds": repeats,
-                "repeat_seconds_per_call": [t / calls for t in repeats],
-            })
+            points[name].append(
+                {
+                    "n": n,
+                    "median_seconds": median,
+                    "calls_per_repeat": calls,
+                    "repeat_total_seconds": repeats,
+                    "repeat_seconds_per_call": [t / calls for t in repeats],
+                }
+            )
     document = {
         "created_at": datetime.now().astimezone().isoformat(),
-        "variant": variant, "seed": 30 + variant,
-        "python": sys.version, "python_executable": sys.executable,
-        "platform": platform.platform(), "machine": platform.machine(),
-        "numpy": numpy.__version__, "matplotlib": matplotlib.__version__,
-        "repeats": REPEATS, "warmup_calls_per_point": 1,
-        "pow_base": POW_BASE, "pow_modulus": POW_MOD,
-        "algorithm_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "input_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                         for p in sorted(data_dir.glob("arrays_*.txt"))},
+        "variant": variant,
+        "seed": 30 + variant,
+        "python": sys.version,
+        "python_executable": sys.executable,
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "numpy": numpy.__version__,
+        "matplotlib": matplotlib.__version__,
+        "repeats": REPEATS,
+        "warmup_calls_per_point": 1,
+        "pow_base": POW_BASE,
+        "pow_modulus": POW_MOD,
+        "algorithm_source_sha256": hashlib.sha256(
+            Path(__file__).read_bytes()
+        ).hexdigest(),
+        "input_sha256": {
+            p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(data_dir.glob("arrays_*.txt"))
+        },
         "measurements": points,
-        "slopes": {name: log_log_slope(results[name]) for name in
-                   ("array_sum", "array_max", "count_equal_pairs")},
+        "slopes": {
+            name: log_log_slope(results[name])
+            for name in ("array_sum", "array_max", "count_equal_pairs")
+        },
     }
     (out_dir / "measurements.json").write_text(
-        json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8")
+        json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--variant", type=int, required=True, help="номер варианта")
-    ap.add_argument("--data", type=Path, default=None,
-                    help="каталог с данными варианта (по умолчанию ищется data/generated)")
-    ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent / "results",
-                    help="каталог результатов (по умолчанию results рядом с файлом)")
+    ap.add_argument(
+        "--data",
+        type=Path,
+        default=None,
+        help="каталог с данными варианта (по умолчанию ищется data/generated)",
+    )
+    ap.add_argument(
+        "--out",
+        type=Path,
+        default=Path(__file__).resolve().parent / "results",
+        help="каталог результатов (по умолчанию results рядом с файлом)",
+    )
     args = ap.parse_args()
 
     data_dir = find_data_dir(args.data)
