@@ -1,18 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""ЛР 2. Рекурсия, динамический массив, стек и дек. Вариант 7, seed 37.
-
-Учебные реализации расположены в разделах 1-3. Загрузка, основные проверки,
-методика замеров и графики адаптированы из заготовки курса mel0d1an.
-
-Из корня личного репозитория:
-    python lab02/generate_data.py --variant 7 --only ops --out data/generated-lab02
-    python lab02/lab02.py --variant 7 --data data/generated-lab02
-
-Проверки без замеров:
-    python lab02/lab02.py --variant 7 --data data/generated-lab02 --check-only
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -29,27 +14,10 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Параметры эксперимента
-# ---------------------------------------------------------------------------
-
-#: Размеры структуры для замера операций у начала (вставка и удаление).
-FRONT_SIZES = (1_000, 3_000, 10_000, 30_000, 100_000)
-
-#: Операций у начала в одном замере: одна операция слишком быстра для таймера.
-FRONT_OPS = 1_000
-
-#: n для таблицы числа вызовов наивной и мемоизированной рекурсии.
+FRONT_SIZES = (1000, 3000, 10000, 30000, 100000)
+FRONT_OPS = 1000
 FIB_NS = (5, 10, 15, 20, 25, 30)
-
-REPEATS = 5  # повторов на точку (берётся медиана)
-
-# ---------------------------------------------------------------------------
-# 1. Рекурсивные функции (счётчик вызовов — для сравнения наивной рекурсии
-#    и мемоизации; результаты счётчика включаются в отчёт)
-# ---------------------------------------------------------------------------
-
-
+REPEATS = 5
 CALLS = {"fib_naive": 0, "fib_memo": 0}
 TIMING_SAMPLES = {}
 
@@ -62,7 +30,6 @@ def _check_n(n: int) -> None:
 
 
 def factorial(n: int) -> int:
-    """n!: O(n) вызовов и O(n) памяти стека при единичной стоимости арифметики."""
     _check_n(n)
     if n == 0:
         return 1
@@ -70,7 +37,6 @@ def factorial(n: int) -> int:
 
 
 def fib_naive(n: int) -> int:
-    """Наивная рекурсия: экспоненциальное число вызовов, O(n) памяти стека."""
     _check_n(n)
     CALLS["fib_naive"] += 1
     if n < 2:
@@ -79,7 +45,6 @@ def fib_naive(n: int) -> int:
 
 
 def fib_memo(n: int, memo: dict[int, int] | None = None) -> int:
-    """Мемоизация: O(n) вызовов, O(n) записей кэша и глубина стека O(n)."""
     _check_n(n)
     CALLS["fib_memo"] += 1
     if memo is None:
@@ -98,7 +63,6 @@ def hanoi(
     aux: str = "B",
     moves: list[tuple[str, str]] | None = None,
 ) -> int:
-    """Переносит n дисков: 2**n - 1 ходов; при moves сохраняет сами ходы."""
     _check_n(n)
     if len({src, dst, aux}) != 3:
         raise ValueError("Нужны три разных стержня")
@@ -112,8 +76,6 @@ def hanoi(
 
 
 class DynamicArray:
-    """Буфер фиксированной длины; ёмкость удваивается только при заполнении."""
-
     INITIAL_CAPACITY = 4
 
     def __init__(self) -> None:
@@ -164,7 +126,6 @@ class DynamicArray:
 
 
 class Stack:
-    """LIFO; использует только публичные методы DynamicArray."""
 
     def __init__(self) -> None:
         self._data = DynamicArray()
@@ -194,7 +155,6 @@ class _Node:
 
 
 class Deque:
-    """Двусвязный список: операции на обоих концах O(1)."""
 
     def __init__(self) -> None:
         self._head = None
@@ -249,15 +209,10 @@ class Deque:
         return node.value
 
 
-# ---------------------------------------------------------------------------
-# 4. Данные варианта: поиск каталога и загрузка
-# ---------------------------------------------------------------------------
-
-Op = tuple[str, int | None]  # операция и её аргумент (None, если аргумента нет)
+Op = tuple[str, int | None]
 
 
 def find_data_dir(explicit: Path | None) -> Path:
-    """Каталог с данными варианта: --data, либо data/generated рядом с работой."""
     if explicit is not None:
         if not explicit.is_dir():
             raise SystemExit(f"Каталог не найден: {explicit}")
@@ -270,15 +225,11 @@ def find_data_dir(explicit: Path | None) -> Path:
         if path.is_dir():
             return path
     raise SystemExit(
-        "Не найден каталог data/generated с данными варианта.\n"
-        "Сгенерируйте данные из корня репозитория курса:\n"
-        "    python scripts/generate_data.py --variant N --only ops\n"
-        "или укажите каталог явно: --data <путь>"
+        "Не найден каталог data/generated с данными варианта.\nСгенерируйте данные из корня репозитория курса:\n    python scripts/generate_data.py --variant N --only ops\nили укажите каталог явно: --data <путь>"
     )
 
 
 def check_variant(data_dir: Path, variant: int) -> None:
-    """Сверить номер варианта с паспортом данных (manifest.json)."""
     manifest_path = data_dir / "manifest.json"
     if not manifest_path.is_file():
         raise SystemExit(f"Нет паспорта данных: {manifest_path}")
@@ -286,10 +237,7 @@ def check_variant(data_dir: Path, variant: int) -> None:
     actual = manifest.get("variant")
     if actual != variant:
         raise SystemExit(
-            f"Данные в {data_dir} сгенерированы для варианта {actual}, "
-            f"а работа запущена с --variant {variant}.\n"
-            f"Перегенерируйте данные: "
-            f"python scripts/generate_data.py --variant {variant} --only ops"
+            f"Данные в {data_dir} сгенерированы для варианта {actual}, а работа запущена с --variant {variant}.\nПерегенерируйте данные: python scripts/generate_data.py --variant {variant} --only ops"
         )
     if manifest.get("seed") != 30 + variant:
         raise SystemExit("Seed в паспорте не соответствует варианту")
@@ -297,24 +245,19 @@ def check_variant(data_dir: Path, variant: int) -> None:
 
 
 def read_data_lines(data_dir: Path, name: str) -> list[str]:
-    """Строки файла данных варианта; при его отсутствии — подсказка, как создать."""
     path = data_dir / name
     if not path.is_file():
         raise SystemExit(
-            f"Не найден файл данных: {path}\n"
-            f"Сгенерируйте его: python scripts/generate_data.py "
-            f"--variant <ваш вариант> --only ops"
+            f"Не найден файл данных: {path}\nСгенерируйте его: python scripts/generate_data.py --variant <ваш вариант> --only ops"
         )
     return path.read_text(encoding="utf-8").splitlines()
 
 
 def load_append_sizes(data_dir: Path) -> list[int]:
-    """Размеры серий append из ops_append_sizes.txt."""
     return [int(line) for line in read_data_lines(data_dir, "ops_append_sizes.txt")]
 
 
 def load_ops(data_dir: Path, kind: str) -> list[Op]:
-    """Операции из ops_<kind>.txt (kind — stack или deque): «push 17», «pop», ..."""
     ops: list[Op] = []
     for line in read_data_lines(data_dir, f"ops_{kind}.txt"):
         name, *arg = line.split()
@@ -322,32 +265,21 @@ def load_ops(data_dir: Path, kind: str) -> list[Op]:
     return ops
 
 
-# ---------------------------------------------------------------------------
-# 5. Репрезентативные тесты и инварианты (шаги 1–3 методики верификации)
-# ---------------------------------------------------------------------------
-
-
 class SelfCheckError(Exception):
-    """Нарушен контракт или инвариант реализации."""
+    pass
 
 
 def expect(condition: bool, message: str) -> None:
-    """Явная проверка вместо assert: assert-ы исчезают при запуске python -O."""
     if not condition:
         raise SelfCheckError(message)
 
 
 def expect_index_error(call, what: str) -> None:
-    """call() должен бросить IndexError."""
     try:
         call()
     except IndexError:
         return
     raise SelfCheckError(f"{what}: ожидался IndexError")
-
-
-# Операции над структурой — словарь «имя операции из данных -> метод»;
-# ключ "len" нужен для сверки размера. Эталоны — list и collections.deque.
 
 
 def stack_methods(st: Stack) -> dict:
@@ -379,7 +311,6 @@ def std_deque_methods(d: collections.deque) -> dict:
 
 
 def apply_op(methods: dict, op: str, arg: int | None):
-    """Выполнить операцию; IndexError превращается в результат "IndexError"."""
     try:
         return methods[op]() if arg is None else methods[op](arg)
     except IndexError:
@@ -387,10 +318,9 @@ def apply_op(methods: dict, op: str, arg: int | None):
 
 
 def compare_with_reference(ops: list[Op], own: dict, ref: dict, label: str) -> None:
-    """Выполнить ops над своей структурой и эталоном, сверяя результат и размер."""
     for i, (op, arg) in enumerate(ops, start=1):
         call = op if arg is None else f"{op} {arg}"
-        got, expected = apply_op(own, op, arg), apply_op(ref, op, arg)
+        got, expected = (apply_op(own, op, arg), apply_op(ref, op, arg))
         expect(
             got == expected,
             f"{label}, операция №{i} ({call}): получено {got!r}, эталон {expected!r}",
@@ -408,7 +338,6 @@ def random_ops(
     count: int,
     max_size: int,
 ) -> list[Op]:
-    """Случайная серия операций над маленькой структурой — с частыми опустошениями."""
     ops: list[Op] = []
     size = 0
     for _ in range(count):
@@ -425,7 +354,6 @@ def random_ops(
 
 
 def expected_capacity(size: int) -> int:
-    """Ёмкость после size подряд идущих append в пустой массив (рост x2)."""
     cap = DynamicArray.INITIAL_CAPACITY
     while cap < size:
         cap *= 2
@@ -433,8 +361,7 @@ def expected_capacity(size: int) -> int:
 
 
 def expected_copies(size: int) -> int:
-    """Число копирований после size подряд идущих append в пустой массив."""
-    copies, cap = 0, DynamicArray.INITIAL_CAPACITY
+    copies, cap = (0, DynamicArray.INITIAL_CAPACITY)
     while cap < size:
         copies += cap
         cap *= 2
@@ -442,14 +369,12 @@ def expected_copies(size: int) -> int:
 
 
 def check_recursion() -> None:
-    """Факториал, числа Фибоначчи со счётчиками вызовов, ходы Ханойских башен."""
     for n in range(21):
         got = factorial(n)
         expect(
             got == math.factorial(n),
             f"factorial({n}) = {got}, ожидалось {math.factorial(n)}",
         )
-
     fib = [0, 1]
     while len(fib) <= 90:
         fib.append(fib[-1] + fib[-2])
@@ -468,10 +393,8 @@ def check_recursion() -> None:
         expect(got == fib[n], f"fib_memo({n}) = {got}, ожидалось {fib[n]}")
         expect(
             CALLS["fib_memo"] <= 2 * n + 1,
-            f"fib_memo({n}): число вызовов {CALLS['fib_memo']}, а с мемоизацией оно "
-            f"не больше 2n + 1 = {2 * n + 1} — memo не передаётся в рекурсию?",
+            f"fib_memo({n}): число вызовов {CALLS['fib_memo']}, а с мемоизацией оно не больше 2n + 1 = {2 * n + 1} — memo не передаётся в рекурсию?",
         )
-
     for n, (src, dst, aux) in (
         (0, "ACB"),
         (1, "ACB"),
@@ -493,8 +416,8 @@ def check_recursion() -> None:
             expect(
                 len(move) == 2
                 and move[0] in towers
-                and move[1] in towers
-                and move[0] != move[1],
+                and (move[1] in towers)
+                and (move[0] != move[1]),
                 f"{where}, ход {k}: {move!r} — не пара разных стержней из {src}, {dst}, {aux}",
             )
             frm, to = move
@@ -516,7 +439,6 @@ def check_recursion() -> None:
 
 
 def check_dynamic_array() -> None:
-    """Границы индексов, рост x2 (ёмкость и копирования), pop и допустимое сжатие."""
     initial = DynamicArray.INITIAL_CAPACITY
     arr = DynamicArray()
     expect(
@@ -526,17 +448,15 @@ def check_dynamic_array() -> None:
     expect_index_error(lambda: arr.get(0), "get(0) пустого массива")
     expect_index_error(lambda: arr.set(0, 1), "set(0, 1) пустого массива")
     expect_index_error(arr.pop, "pop() пустого массива")
-
     ref: list[int] = []
-    for i in range(100):  # проходим границы ёмкости 4, 8, 16, 32, 64
+    for i in range(100):
         arr.append(i * i)
         ref.append(i * i)
         size = len(ref)
         expect(len(arr) == size, f"после {size} append: len = {len(arr)}")
         expect(
             arr.capacity == expected_capacity(size),
-            f"после {size} append: capacity = {arr.capacity}, ожидалось "
-            f"{expected_capacity(size)} (расширение x2 и только при size == capacity)",
+            f"после {size} append: capacity = {arr.capacity}, ожидалось {expected_capacity(size)} (расширение x2 и только при size == capacity)",
         )
         expect(
             arr.copies == expected_copies(size),
@@ -547,7 +467,7 @@ def check_dynamic_array() -> None:
         expect(got == value, f"get({i}) = {got!r}, ожидалось {value!r}")
     arr.set(0, -1)
     arr.set(99, -99)
-    ref[0], ref[99] = -1, -99
+    ref[0], ref[99] = (-1, -99)
     expect(
         arr.get(0) == -1 and arr.get(99) == -99,
         "set(0, ...) или set(99, ...) не изменил элемент",
@@ -557,12 +477,10 @@ def check_dynamic_array() -> None:
         expect_index_error(
             lambda bad=bad: arr.set(bad, 0), f"set({bad}, 0) при size = 100"
         )
-
-    # pop до пустого, повторный рост и снова pop; сжатие, если есть, — только на ¼
     for refill in (70, 0):
         while ref:
             cap_before = arr.capacity
-            got, expected = arr.pop(), ref.pop()
+            got, expected = (arr.pop(), ref.pop())
             size = len(ref)
             expect(
                 got == expected,
@@ -574,10 +492,9 @@ def check_dynamic_array() -> None:
                 or (
                     arr.capacity == cap_before // 2
                     and size <= cap_before // 4
-                    and arr.capacity >= initial
+                    and (arr.capacity >= initial)
                 ),
-                f"pop() при size = {size + 1}: capacity {cap_before} -> {arr.capacity}; "
-                f"сжимать можно только вдвое, при size <= capacity // 4 и не ниже {initial}",
+                f"pop() при size = {size + 1}: capacity {cap_before} -> {arr.capacity}; сжимать можно только вдвое, при size <= capacity // 4 и не ниже {initial}",
             )
         expect_index_error(arr.pop, "pop() опустошённого массива")
         for i in range(refill):
@@ -596,14 +513,12 @@ def check_dynamic_array() -> None:
 
 
 def check_stack() -> None:
-    """LIFO через границы ёмкости, pop/peek пустого стека, сверка с list."""
     st = Stack()
     expect(len(st) == 0, f"пустой стек: len = {len(st)}")
     expect_index_error(st.pop, "pop() пустого стека")
     expect_index_error(st.peek, "peek() пустого стека")
-
-    for start in (0, 100):  # второй проход — после опустошения
-        values = list(range(start, start + 20))  # 20 элементов: границы 4, 8 и 16
+    for start in (0, 100):
+        values = list(range(start, start + 20))
         for k, x in enumerate(values, start=1):
             st.push(x)
             top = st.peek()
@@ -624,10 +539,9 @@ def check_stack() -> None:
             expect(len(st) == len(values) - k, f"после pop() №{k}: len = {len(st)}")
         expect_index_error(st.pop, "pop() опустошённого стека")
         expect_index_error(st.peek, "peek() опустошённого стека")
-
-    own, ref = Stack(), []
+    own, ref = (Stack(), [])
     ops = random_ops(
-        random.Random(1), ("push",), ("pop", "peek"), count=3_000, max_size=40
+        random.Random(1), ("push",), ("pop", "peek"), count=3000, max_size=40
     )
     compare_with_reference(
         ops,
@@ -638,15 +552,11 @@ def check_stack() -> None:
 
 
 def check_deque() -> None:
-    """Операции с обоих концов, опустошение и повторное наполнение, сверка с deque."""
     dq = Deque()
     expect(len(dq) == 0, f"пустой дек: len = {len(dq)}")
     expect_index_error(dq.pop_front, "pop_front() пустого дека")
     expect_index_error(dq.pop_back, "pop_back() пустого дека")
-
-    # Все сочетания концов для одного элемента с повторным наполнением:
-    # забытые head/tail при опустошении проявляются только так.
-    pushes, pops = ("push_front", "push_back"), ("pop_front", "pop_back")
+    pushes, pops = (("push_front", "push_back"), ("pop_front", "pop_back"))
     for push1 in pushes:
         for pop1 in pops:
             for push2 in pushes:
@@ -663,9 +573,8 @@ def check_deque() -> None:
                     )
                     expect_index_error(dq.pop_front, f"{story}, затем pop_front()")
                     expect_index_error(dq.pop_back, f"{story}, затем pop_back()")
-
-    own, ref = Deque(), collections.deque()
-    ops = random_ops(random.Random(2), pushes, pops, count=5_000, max_size=12)
+    own, ref = (Deque(), collections.deque())
+    ops = random_ops(random.Random(2), pushes, pops, count=5000, max_size=12)
     compare_with_reference(
         ops,
         deque_methods(own),
@@ -675,7 +584,6 @@ def check_deque() -> None:
 
 
 def check_variant_ops(stack_ops: list[Op], deque_ops: list[Op]) -> None:
-    """Операции варианта: свой стек против list, свой дек против collections.deque."""
     compare_with_reference(
         stack_ops, stack_methods(Stack()), list_stack_methods([]), "ops_stack.txt"
     )
@@ -692,7 +600,7 @@ def check_array_state(arr: DynamicArray, ref: list) -> None:
     expect(len(arr._buffer) == arr.capacity, "Длина буфера не равна capacity")
     expect([arr.get(i) for i in range(len(arr))] == ref, "Содержимое массива")
     expect(
-        all(x is None for x in arr._buffer[len(arr) :]),
+        all((x is None for x in arr._buffer[len(arr) :])),
         "Хвост буфера удерживает ссылки",
     )
 
@@ -705,7 +613,7 @@ def check_deque_links(dq: Deque, ref: collections.deque) -> None:
         expect(node.prev is previous, "Нарушена обратная ссылка узла")
         values.append(node.value)
         expect(len(values) <= len(dq), "Цикл в списке или неправильный size")
-        previous, node = node, node.next
+        previous, node = (node, node.next)
     expect(values == list(ref), "Порядок элементов дека")
     expect(previous is dq._tail, "Последний узел не равен tail")
     expect(len(values) == len(dq) == len(ref), "Размер дека")
@@ -724,7 +632,6 @@ def expect_value_error(call, label: str) -> None:
 
 
 def check_extended() -> None:
-    """300 случайных сценариев для каждой структуры; seed = 37."""
     for fn in (factorial, fib_naive, fib_memo, hanoi):
         expect_value_error(lambda fn=fn: fn(-1), f"{fn.__name__}(-1)")
     expect_value_error(lambda: hanoi(1, "A", "A", "B"), "Одинаковые стержни")
@@ -732,18 +639,17 @@ def check_extended() -> None:
         CALLS["fib_naive"] = CALLS["fib_memo"] = 0
         value = fib_naive(n)
         expect(value == fib_memo(n), "Фибоначчи: разные значения")
-        a, b = 0, 1
+        a, b = (0, 1)
         for _ in range(n + 1):
-            a, b = b, a + b
+            a, b = (b, a + b)
         expect(CALLS["fib_naive"] == 2 * a - 1, "Формула числа наивных вызовов")
         expect(
             CALLS["fib_memo"] == (1 if n == 0 else 2 * n - 1),
             "Формула числа мемоизированных вызовов",
         )
-
     rng = random.Random(37)
     for _ in range(300):
-        arr, ref = DynamicArray(), []
+        arr, ref = (DynamicArray(), [])
         for _ in range(100):
             op = rng.choice(("append", "pop", "get", "set"))
             x = rng.choice((None, -3, 0, 2, "x"))
@@ -769,7 +675,6 @@ def check_extended() -> None:
                         "Случайный неверный индекс",
                     )
             check_array_state(arr, ref)
-
         stack_ops = random_ops(rng, ("push",), ("pop", "peek"), 100, 30)
         compare_with_reference(
             stack_ops,
@@ -777,7 +682,7 @@ def check_extended() -> None:
             list_stack_methods([]),
             "Дополнительный стек",
         )
-        dq, ref_dq = Deque(), collections.deque()
+        dq, ref_dq = (Deque(), collections.deque())
         operations = random_ops(
             rng, ("push_front", "push_back"), ("pop_front", "pop_back"), 100, 30
         )
@@ -789,7 +694,6 @@ def check_extended() -> None:
 
 
 def self_check(stack_ops: list[Op], deque_ops: list[Op]) -> None:
-    """Все проверки по разделам; при любой ошибке замеры не выполняются."""
     checks = (
         ("рекурсия", check_recursion),
         ("DynamicArray", check_dynamic_array),
@@ -810,7 +714,7 @@ def self_check(stack_ops: list[Op], deque_ops: list[Op]) -> None:
         except SelfCheckError as err:
             print(f"  {name}: ОШИБКА — {err}")
             failed += 1
-        except Exception:  # noqa: BLE001 — падение реализации тоже результат проверки
+        except Exception:
             print(f"  {name}: ИСКЛЮЧЕНИЕ")
             traceback.print_exc(file=sys.stdout)
             failed += 1
@@ -818,20 +722,13 @@ def self_check(stack_ops: list[Op], deque_ops: list[Op]) -> None:
             print(f"  {name}: OK")
     if failed:
         raise SystemExit(
-            f"self_check: не пройдено разделов — {failed}; "
-            f"замеры выполняются только после всех проверок."
+            f"self_check: не пройдено разделов — {failed}; замеры выполняются только после всех проверок."
         )
     print("self_check: OK")
 
 
-# ---------------------------------------------------------------------------
-# 6. Замеры (методика — docs/reproducibility.md)
-# ---------------------------------------------------------------------------
-
-
 def bench(call, label: str) -> float:
-    """Медиана времени выполнения call() по REPEATS запускам, с прогревом."""
-    call()  # прогрев — не учитывается
+    call()
     times = []
     for _ in range(REPEATS):
         t0 = time.perf_counter()
@@ -842,30 +739,26 @@ def bench(call, label: str) -> float:
 
 
 def log_log_slope(points: list[tuple[int, float]]) -> float:
-    """Наклон прямой в осях (log n, log t) — оценка показателя степени."""
     xs = [math.log10(n) for n, _ in points]
     ys = [math.log10(t) for _, t in points]
-    mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
-    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sum(
-        (x - mx) ** 2 for x in xs
+    mx, my = (sum(xs) / len(xs), sum(ys) / len(ys))
+    return sum(((x - mx) * (y - my) for x, y in zip(xs, ys))) / sum(
+        ((x - mx) ** 2 for x in xs)
     )
 
 
 def appends(add, n: int) -> None:
-    """n последовательных добавлений в конец."""
     for i in range(n):
         add(i)
 
 
 def steady_ops(add, remove, k: int = FRONT_OPS) -> None:
-    """k пар «добавить + удалить»: размер структуры не меняется."""
     for i in range(k):
         add(i)
         remove()
 
 
 def replay(ops: list[Op], methods: dict) -> None:
-    """Выполнить операции варианта без сверки — для замера."""
     for op, arg in ops:
         try:
             if arg is None:
@@ -877,7 +770,6 @@ def replay(ops: list[Op], methods: dict) -> None:
 
 
 def filled_structure(kind: str, n: int):
-    """list, collections.deque или свой Deque из n элементов."""
     if kind == "list":
         return list(range(n))
     if kind == "deque":
@@ -887,8 +779,6 @@ def filled_structure(kind: str, n: int):
     return dq
 
 
-#: Операции у начала: подпись, тип структуры и пара методов (добавить, удалить).
-#: Второй метод работает на другом конце и держит размер равным n.
 FRONT_CASES = {
     "insert": (
         (
@@ -915,10 +805,8 @@ FRONT_TITLES = {"insert": "Вставка в начало", "remove": "Удал�
 def run_benchmarks(
     append_sizes: list[int], stack_ops: list[Op], deque_ops: list[Op]
 ) -> dict:
-    """Замеры на данных варианта. Возвращает результаты для графиков."""
     TIMING_SAMPLES.clear()
     results: dict = {"fibonacci": [], "variant_ops": {}, "append_counts": []}
-
     print("\nЧисло вызовов: наивная рекурсия против мемоизации")
     for n in FIB_NS:
         CALLS["fib_naive"] = CALLS["fib_memo"] = 0
@@ -933,10 +821,8 @@ def run_benchmarks(
             }
         )
         print(
-            f"  n={n:>2}  F(n)={value:>6}  fib_naive: {CALLS['fib_naive']:>7} вызовов"
-            f"  fib_memo: {CALLS['fib_memo']:>2} вызовов"
+            f"  n={n:>2}  F(n)={value:>6}  fib_naive: {CALLS['fib_naive']:>7} вызовов  fib_memo: {CALLS['fib_memo']:>2} вызовов"
         )
-
     print("\nСерии append на размерах варианта:")
     results["append"] = []
     for n in append_sizes:
@@ -947,20 +833,17 @@ def run_benchmarks(
         t_list = bench(lambda: appends([].append, n), f"append:list:{n}") / n
         arr = DynamicArray()
         appends(arr.append, n)
-        cost = (n + arr.copies) / n  # записи и копирования на одну операцию
+        cost = (n + arr.copies) / n
         results["append"].append((n, t_own, t_list, cost))
         results["append_counts"].append(
             {"n": n, "copies": arr.copies, "capacity": arr.capacity, "cost": cost}
         )
         print(
-            f"  n={n:>7}  t/n: DynamicArray {t_own:.2e} c, list {t_list:.2e} c"
-            f"  копирований {arr.copies:>7}  (n + копирования)/n = {cost:.3f}"
+            f"  n={n:>7}  t/n: DynamicArray {t_own:.2e} c, list {t_list:.2e} c  копирований {arr.copies:>7}  (n + копирования)/n = {cost:.3f}"
         )
-
     for key, title in FRONT_TITLES.items():
         print(
-            f"\n{title}: время пары операций при размере n = "
-            f"{', '.join(map(str, FRONT_SIZES))}"
+            f"\n{title}: время пары операций при размере n = {', '.join(map(str, FRONT_SIZES))}"
         )
         results[key] = {}
         for label, kind, methods in FRONT_CASES[key]:
@@ -975,9 +858,8 @@ def run_benchmarks(
                     )
                 )
             results[key][label] = points
-            row = "  ".join(f"{t:.2e}" for _, t in points)
+            row = "  ".join((f"{t:.2e}" for _, t in points))
             print(f"  {label:28s} {row}   наклон {log_log_slope(points):.2f}")
-
     print("\nОперации варианта целиком: время на операцию")
     cases = (
         (
@@ -1013,32 +895,23 @@ def run_benchmarks(
             "ratio": t_own / t_ref,
         }
         print(
-            f"  {name}: {own_label} {t_own:.2e} c, {ref_label} {t_ref:.2e} c"
-            f" — в {t_own / t_ref:.1f} раза медленнее"
+            f"  {name}: {own_label} {t_own:.2e} c, {ref_label} {t_ref:.2e} c — в {t_own / t_ref:.1f} раза медленнее"
         )
     results["timing_samples"] = dict(TIMING_SAMPLES)
     return results
 
 
-# ---------------------------------------------------------------------------
-# 7. Графики
-# ---------------------------------------------------------------------------
-
-
 def plot_results(results: dict, out_dir: Path) -> None:
-    """Два графика: серии append варианта и операции у начала (log-log)."""
     try:
         import matplotlib
 
-        matplotlib.use("Agg")  # сохранение в файл без графической оболочки
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError:
         print(
-            "\nmatplotlib не установлен — графики пропущены "
-            "(pip install -r requirements.txt)"
+            "\nmatplotlib не установлен — графики пропущены (pip install -r requirements.txt)"
         )
         return
-
     rows = results["append"]
     ns = [row[0] for row in rows]
     fig, (ax_t, ax_c) = plt.subplots(1, 2, figsize=(12, 4.5))
@@ -1063,7 +936,6 @@ def plot_results(results: dict, out_dir: Path) -> None:
     append_path = out_dir / "lab02_append.png"
     fig.savefig(append_path, dpi=150)
     plt.close(fig)
-
     fig2, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
     for ax, (key, title) in zip(axes, FRONT_TITLES.items()):
         for label, points in results[key].items():
@@ -1084,11 +956,7 @@ def plot_results(results: dict, out_dir: Path) -> None:
     front_path = out_dir / "lab02_front.png"
     fig2.savefig(front_path, dpi=150)
     plt.close(fig2)
-
     print(f"\nГрафики сохранены:\n  {append_path}\n  {front_path}")
-
-
-# ---------------------------------------------------------------------------
 
 
 def save_results(results: dict, data_dir: Path, variant: int, out_dir: Path) -> None:
@@ -1150,13 +1018,11 @@ def main() -> None:
         "--check-only", action="store_true", help="только проверки, без замеров"
     )
     args = ap.parse_args()
-
     data_dir = find_data_dir(args.data)
     check_variant(data_dir, args.variant)
     append_sizes = load_append_sizes(data_dir)
     stack_ops = load_ops(data_dir, "stack")
     deque_ops = load_ops(data_dir, "deque")
-
     self_check(stack_ops, deque_ops)
     if args.check_only:
         return

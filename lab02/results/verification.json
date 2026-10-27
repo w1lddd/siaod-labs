@@ -10,5 +10,9 @@
   "optimized_python_self_check": "passed",
   "black": "passed",
   "ruff": "passed",
-  "source_sha256": "bcef8c8ff8d4d4d310c578e59c048ca578b1147229f3fce78c2fd391746e9d74"
+  "source_sha256": "bcef8c8ff8d4d4d310c578e59c048ca578b1147229f3fce78c2fd391746e9d74",
+  "published_source_sha256": "76076de76381d76679da28342ea6f80db5cbb2f629751f63ce11dfc11c9e0195",
+  "measured_source_commit": "e39e4ee3b6dd1cf6bb45262693e9792c77087f09",
+  "executable_ast_matches_measured": true,
+  "comments_and_docstrings_removed": true
 }
