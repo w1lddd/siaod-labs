@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "consistency_checks": 149,
+  "timing_points": 54,
+  "timed_runs": 270,
+  "warmups_per_point": 1,
+  "generator_deterministic": true,
+  "generator_git_blob_sha": "daaaeb5e378391d12f4fa47125a274838aa07b1d",
+  "normal_self_check": "passed",
+  "optimized_python_self_check": "passed",
+  "black": "passed",
+  "ruff": "passed",
+  "source_sha256": "bcef8c8ff8d4d4d310c578e59c048ca578b1147229f3fce78c2fd391746e9d74"
+}
