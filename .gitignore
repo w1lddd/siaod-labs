@@ -6,4 +6,6 @@ __pycache__/
 .DS_Store
 .idea/
 data/generated/
+data/generated-lab02/
 lab01/results-new/
+lab02/results-new/
